@@ -26,7 +26,8 @@ def crawl_node(state: Dict[str, Any]) -> Dict[str, Any]:
     """
     爬虫节点：采集小红书爆款笔记
 
-    调用 XhsCrawler 根据关键词采集高赞笔记，将结果序列化为 JSON 存入状态。
+    优先复用数据库中已有的同关键词素材，避免重复爬取。
+    仅在数据库无记录，或 force_crawl=True 时才实际爬取。
 
     @param state 当前 AgentState
     @return dict 状态更新字典
@@ -35,8 +36,35 @@ def crawl_node(state: Dict[str, Any]) -> Dict[str, Any]:
     """
     keyword = state["keyword"]
     task_id = state["task_id"]
+    force_crawl = state.get("force_crawl", False)
     logger.info(f"[爬虫节点] 开始采集: {keyword}")
 
+    # === 优先从数据库读取已有素材 ===
+    if not force_crawl:
+        try:
+            from database.db_manager import get_db_manager
+            db = get_db_manager()
+            existing = db.query_hot_materials(keyword=keyword)
+            if existing:
+                results = [
+                    {
+                        "ref_title": m.ref_title,
+                        "ref_content": m.ref_content,
+                        "ref_tags": m.ref_tags,
+                        "like_num": m.like_num,
+                        "crawl_url": m.crawl_url,
+                    }
+                    for m in existing
+                ]
+                logger.info(
+                    f"[爬虫节点] 数据库已有 {len(results)} 条「{keyword}」素材，跳过爬取直接复用"
+                )
+                import json
+                return {"hot_material": json.dumps(results, ensure_ascii=False)}
+        except Exception as e:
+            logger.warning(f"[爬虫节点] 读取数据库素材失败，回退到爬取: {e}")
+
+    # === 实际爬取 ===
     try:
         crawler = XhsCrawler()
         results = crawler.crawl_hot_notes(keyword)
@@ -189,6 +217,8 @@ def generate_cover_node(state: Dict[str, Any]) -> Dict[str, Any]:
 
     except Exception as e:
         logger.warning(f"[封面节点] 异常: {e}，继续归档（无封面）")
+        import traceback
+        logger.warning(f"[封面节点] 详细错误: {traceback.format_exc()}")
         return {"cover_path": ""}
 
 

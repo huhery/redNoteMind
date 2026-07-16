@@ -23,9 +23,9 @@ from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-# 封面固定尺寸
-COVER_WIDTH = 750
-COVER_HEIGHT = 1000
+# 封面固定尺寸（必须是 8 的倍数，符合通义万相要求）
+COVER_WIDTH = 768
+COVER_HEIGHT = 1024
 
 # 动态 Prompt 随机修饰词
 _STYLE_MODIFIERS = [
@@ -110,7 +110,6 @@ class CoverGenerator:
         except Exception as e:
             logger.error(f"封面生成失败: {e}")
             return {"cover_path": "", "cover_status": False}
-
     def _build_prompt(self, title: str, style: str) -> str:
         """
         构建动态绘图 Prompt

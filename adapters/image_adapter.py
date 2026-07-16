@@ -90,7 +90,7 @@ class WanxiangAdapter(BaseImageAdapter):
             "X-DashScope-Async": "enable",
         }
         payload = {
-            "model": "wanx-v1",
+            "model": "wanx2.1-t2i-turbo",
             "input": {"prompt": prompt},
             "parameters": {
                 "size": f"{width}*{height}",
@@ -105,6 +105,7 @@ class WanxiangAdapter(BaseImageAdapter):
             )
             response.raise_for_status()
             data = response.json()
+            logger.debug(f"通义万相提交响应: {data}")
             task_id = data["output"]["task_id"]
             logger.debug(f"通义万相任务已提交: {task_id}")
         except requests.Timeout:

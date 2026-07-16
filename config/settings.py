@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     crawler_mode: str = "no_login"  # no_login / cookie
     crawler_cookie: str = ""
     crawler_daily_limit: int = 5
+    crawler_headless: bool = False  # False=有头模式（绕反爬），True=无头模式（Docker部署用）
 
     # === 文案配置 ===
     copy_word_min: int = 300

@@ -25,11 +25,12 @@ from utils.logger import get_logger, add_file_handler, remove_file_handler
 logger = get_logger(__name__)
 
 
-def run_task(keyword: str) -> bool:
+def run_task(keyword: str, force_crawl: bool = False) -> bool:
     """
     执行一次完整的内容生成任务
 
     @param keyword 赛道关键词
+    @param force_crawl 是否强制重新爬取（忽略数据库缓存）
     @return bool 任务是否成功
     @author honghui
     @date 2025/07/15 10:00
@@ -39,7 +40,7 @@ def run_task(keyword: str) -> bool:
     logger.info(f"{'=' * 50}")
 
     # 创建初始状态
-    state = create_initial_state(keyword)
+    state = create_initial_state(keyword, force_crawl=force_crawl)
     task_id = state["task_id"]
     logger.info(f"任务ID: {task_id}")
 
@@ -131,6 +132,12 @@ def main():
         default="",
         help="赛道关键词（传入则单次执行，不传则进入交互模式）",
     )
+    parser.add_argument(
+        "--force-crawl", "-f",
+        action="store_true",
+        default=False,
+        help="强制重新爬取（忽略数据库缓存），默认复用已有素材",
+    )
     args = parser.parse_args()
 
     # 初始化数据库
@@ -139,7 +146,7 @@ def main():
 
     if args.keyword:
         # 单次执行模式
-        success = run_task(args.keyword)
+        success = run_task(args.keyword, force_crawl=args.force_crawl)
         sys.exit(0 if success else 1)
     else:
         # 交互循环模式

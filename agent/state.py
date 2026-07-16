@@ -33,15 +33,15 @@ class AgentState(TypedDict):
     retry_count: int      # 合规重试计数（最多3次）
     error_msg: str        # 错误信息
     task_id: str          # 当前任务唯一ID
+    force_crawl: bool     # 是否强制重新爬取（忽略数据库缓存）
 
 
-def create_initial_state(keyword: str) -> AgentState:
+def create_initial_state(keyword: str, force_crawl: bool = False) -> AgentState:
     """
     创建初始状态
 
-    用户输入关键词后，初始化一个全新的 AgentState。
-
     @param keyword 赛道关键词
+    @param force_crawl 是否强制重新爬取，默认 False（优先复用数据库）
     @return AgentState 初始状态字典
     @author honghui
     @date 2025/07/15 10:00
@@ -58,4 +58,5 @@ def create_initial_state(keyword: str) -> AgentState:
         retry_count=0,
         error_msg="",
         task_id=uuid.uuid4().hex,
+        force_crawl=force_crawl,
     )
