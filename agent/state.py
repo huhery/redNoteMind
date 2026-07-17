@@ -29,6 +29,7 @@ class AgentState(TypedDict):
     tags: List[str]       # 生成的标签列表
     check_result: str     # 合规检测结果（passed / failed）
     cover_path: str       # 封面图本地路径
+    content_image_paths: List[str]  # 内容图本地路径列表（正文分页图）
     finished: bool        # 任务是否完成
     retry_count: int      # 合规重试计数（最多3次）
     error_msg: str        # 错误信息
@@ -54,6 +55,7 @@ def create_initial_state(keyword: str, force_crawl: bool = False) -> AgentState:
         tags=[],
         check_result="",
         cover_path="",
+        content_image_paths=[],
         finished=False,
         retry_count=0,
         error_msg="",

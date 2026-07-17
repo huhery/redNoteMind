@@ -42,6 +42,9 @@ class Settings(BaseSettings):
     copy_word_min: int = 300
     copy_word_max: int = 800
 
+    # === 封面配置 ===
+    cover_corner_text: str = "高效不踩坑"  # 图片右下角点缀语，留空则不显示
+
     # === 路径配置 ===
     output_dir: str = "./output"
     db_path: str = "./data/xhs_agent.db"

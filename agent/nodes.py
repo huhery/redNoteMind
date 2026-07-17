@@ -184,18 +184,20 @@ def compliance_check_node(state: Dict[str, Any]) -> Dict[str, Any]:
 
 def generate_cover_node(state: Dict[str, Any]) -> Dict[str, Any]:
     """
-    封面生成节点：AI绘图 + 文字叠加
+    封面生成节点：封面页 + 内容页排版出图
 
-    调用 CoverGenerator 生成封面图并保存。
-    封面生成失败不影响整体流程（文案仍可手动使用）。
+    调用 CoverGenerator 生成米色风格封面图及正文分页内容图并保存。
+    出图失败不影响整体流程（文案仍可手动使用）。
 
     @param state 当前 AgentState
     @return dict 状态更新字典
     @author honghui
-    @date 2025/07/15 10:00
+    @date 2026/07/17 10:00
     """
     title = state["title"]
-    logger.info(f"[封面节点] 开始生成封面: {title[:20]}...")
+    content = state.get("content", "")
+    tags = state.get("tags", [])
+    logger.info(f"[封面节点] 开始生成封面及内容图: {title[:20]}...")
 
     try:
         settings = get_settings()
@@ -203,23 +205,29 @@ def generate_cover_node(state: Dict[str, Any]) -> Dict[str, Any]:
 
         # 保存目录使用 output 目录
         save_dir = settings.output_dir
-        result = generator.generate_cover(title, save_dir)
+        result = generator.generate_all(title, content, tags, save_dir)
 
         cover_path = result.get("cover_path", "")
+        content_image_paths = result.get("content_image_paths", [])
         cover_status = result.get("cover_status", False)
 
         if cover_status:
-            logger.info(f"[封面节点] 生成成功: {cover_path}")
-            return {"cover_path": cover_path}
+            logger.info(
+                f"[封面节点] 生成成功: 封面={cover_path}，内容图{len(content_image_paths)}张"
+            )
+            return {
+                "cover_path": cover_path,
+                "content_image_paths": content_image_paths,
+            }
         else:
             logger.warning("[封面节点] 生成失败，继续归档（无封面）")
-            return {"cover_path": ""}
+            return {"cover_path": "", "content_image_paths": []}
 
     except Exception as e:
         logger.warning(f"[封面节点] 异常: {e}，继续归档（无封面）")
         import traceback
         logger.warning(f"[封面节点] 详细错误: {traceback.format_exc()}")
-        return {"cover_path": ""}
+        return {"cover_path": "", "content_image_paths": []}
 
 
 def archive_node(state: Dict[str, Any]) -> Dict[str, Any]:

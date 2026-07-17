@@ -52,6 +52,7 @@ class Archiver:
         content = task_state.get("content", "")
         tags = task_state.get("tags", [])
         cover_path = task_state.get("cover_path", "")
+        content_image_paths = task_state.get("content_image_paths", [])
         hot_material = task_state.get("hot_material", "")
         check_result = task_state.get("check_result", "")
         task_id = task_state.get("task_id", "")
@@ -68,6 +69,9 @@ class Archiver:
 
             # 复制封面图
             self._copy_cover(folder_path, cover_path)
+
+            # 复制内容图
+            self._copy_content_images(folder_path, content_image_paths)
 
             # 写入 source_hot.json
             self._write_hot_json(folder_path, hot_material)
@@ -181,6 +185,32 @@ class Archiver:
             logger.debug(f"封面.jpg 已复制: {dest_path}")
         except Exception as e:
             logger.error(f"封面复制失败: {e}")
+
+    def _copy_content_images(self, folder_path: str, content_image_paths: List[str]):
+        """
+        复制内容图到归档文件夹
+
+        命名规则：内容_1.jpg、内容_2.jpg ...，按顺序对应正文分页。
+
+        @param folder_path 文件夹路径
+        @param content_image_paths 内容图原路径列表
+        @author honghui
+        @date 2026/07/17 10:00
+        """
+        if not content_image_paths:
+            logger.debug("无内容图，跳过复制")
+            return
+
+        for idx, src in enumerate(content_image_paths, start=1):
+            if not src or not Path(src).exists():
+                logger.warning(f"内容图不存在，跳过: {src}")
+                continue
+            dest_path = Path(folder_path) / f"内容_{idx}.jpg"
+            try:
+                shutil.copy2(src, dest_path)
+                logger.debug(f"内容_{idx}.jpg 已复制: {dest_path}")
+            except Exception as e:
+                logger.error(f"内容图复制失败: {e}")
 
     def _write_hot_json(self, folder_path: str, hot_material: str):
         """
